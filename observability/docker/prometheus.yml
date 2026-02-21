@@ -1,0 +1,106 @@
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║                         PROMETHEUS CONFIGURATION                           ║
+# ║                           joowme-agent monitoring                          ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
+
+global:
+  scrape_interval: 15s          # چند وقت یکبار metrics جمع بشه
+  evaluation_interval: 15s       # چند وقت یکبار alert rules ارزیابی بشن
+  
+  # Labels که به همه metrics اضافه می‌شن
+  external_labels:
+    environment: 'development'
+    project: 'joowme-agent'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Alertmanager configuration (اگر نیاز داشتی)
+# ─────────────────────────────────────────────────────────────────────────────
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Rule files (برای alert rules)
+# ─────────────────────────────────────────────────────────────────────────────
+# rule_files:
+#   - "/etc/prometheus/rules/*.yml"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SCRAPE CONFIGS - منابع metrics
+# ─────────────────────────────────────────────────────────────────────────────
+scrape_configs:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 1. Prometheus Self-Monitoring
+  # ═══════════════════════════════════════════════════════════════════════════
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 2. joowme-agent FastAPI Application
+  # ═══════════════════════════════════════════════════════════════════════════
+  - job_name: 'joowme-agent'
+    static_configs:
+      - targets: ['host.docker.internal:8000']  # اگه app روی host اجرا می‌شه
+        labels:
+          service: 'joowme-agent'
+          type: 'application'
+    # اگه تو docker اجراست:
+    # - targets: ['joowme-app:8000']
+    metrics_path: /metrics
+    scrape_interval: 10s  # سریع‌تر برای application metrics
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 3. Qdrant Vector Database
+  # ═══════════════════════════════════════════════════════════════════════════
+  - job_name: 'qdrant'
+    static_configs:
+      - targets: ['qdrant:6333']
+        labels:
+          service: 'qdrant'
+          type: 'database'
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 4. PostgreSQL via postgres_exporter
+  # ═══════════════════════════════════════════════════════════════════════════
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
+          type: 'database'
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 5. Phoenix AI Observability (اگه metrics داشته باشه)
+  # ═══════════════════════════════════════════════════════════════════════════
+  # - job_name: 'phoenix'
+  #   static_configs:
+  #     - targets: ['phoenix:6006']
+  #       labels:
+  #         service: 'phoenix'
+  #         type: 'observability'
+  #   metrics_path: /metrics
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 6. Node Exporter (System Metrics) - اختیاری
+  # ═══════════════════════════════════════════════════════════════════════════
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #       labels:
+  #         service: 'node'
+  #         type: 'system'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# REMOTE WRITE (برای ذخیره طولانی‌مدت - اختیاری)
+# ─────────────────────────────────────────────────────────────────────────────
+# remote_write:
+#   - url: "http://mimir:9009/api/v1/push"

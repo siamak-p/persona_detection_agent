@@ -1,0 +1,17 @@
+# Grafana Dashboard Provisioning Config
+# این فایل می‌گه داشبوردها رو از کجا بخونه
+
+apiVersion: 1
+
+providers:
+  - name: 'joowme-dashboards'
+    orgId: 1
+    folder: 'Joowme Agent'
+    folderUid: 'joowme'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

@@ -1,0 +1,44 @@
+# Grafana Datasources Auto-Provisioning
+# این فایل باعث می‌شه datasource ها خودکار اضافه بشن
+
+apiVersion: 1
+
+datasources:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 1. Prometheus - برای metrics
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: "2.45.0"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 2. PostgreSQL - برای query مستقیم جداول
+  # ─────────────────────────────────────────────────────────────────────────────
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: joowme
+    user: joowme
+    secureJsonData:
+      password: joowme
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 5
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+      postgresVersion: 1600  # PostgreSQL 16
+      timescaledb: false
+    editable: true
+
+  # Note: SQLite datasource removed - requires frser-sqlite-datasource plugin
+  # which may fail to install due to network issues. SQLite metrics are 
+  # exposed via Prometheus metrics instead (sqlite_* metrics)
