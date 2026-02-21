@@ -53,8 +53,6 @@ environment:
   POSTGRES_PASSWORD: your_db_password
 ```
 
-> ⚠️ **Important:** Never commit real credentials to version control. The `.env` file is already in `.gitignore`.
-
 ### 2. Create a Virtual Environment & Install Dependencies
 
 ```bash
